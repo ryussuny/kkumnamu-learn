@@ -76,22 +76,23 @@
 
   views.start = function () {
     var s = store.get();
-    if (!s.pin && !s.profiles.length) return go('welcome');
+    if (!s.profiles.length) return go('welcome');
+    if (s.profiles.length === 1) { cur.pid = s.profiles[0].id; s.last = cur.pid; return go('home'); }   /* 아이가 한 명이면 바로 그 아이 홈 */
     go('profiles');
   };
 
   views.welcome = function () {
     render('<div class="center gap2"><h1>꿈나무 배움터</h1><p class="gap">초등 1학년부터 중학교 3학년까지,<br>수학·영어·국어·성경·두뇌 게임을<br>단계별로 풀어 보는 앱이에요.</p>' +
-      '<div class="card gap2" style="text-align:left"><h3>처음 한 번, 부모님이 설정해 주세요</h3><p class="sm gap">· 부모 화면에서 아이 프로필을 만들고 기록을 봐요.<br>· 이름은 별명만 써요. 사진·녹음·실명은 받지 않아요.<br>· 기록은 이 기기 안에만 저장돼요. 서버로 보내지 않아요.</p></div>' +
-      '<div class="gap2"><button class="btn big" data-act="setpin">부모 비밀번호 정하기</button></div></div>');
+      '<div class="gap2"><button class="btn big" data-act="begin">시작하기</button></div>' +
+      '<p class="sm gap2">별명만 써요. 사진·녹음·실명은 받지 않고,<br>기록은 이 기기 안에만 저장돼요.</p></div>');
   };
-  acts.setpin = function () { pinScreen({ title: '부모 비밀번호 4자리를 정해 주세요', confirm: true, back: null, ok: function (pin) { var s = store.get(); s.pin = KN.hash(pin); save(); go('newprofile', { first: true }); } }); };
+  acts.begin = function () { go('newprofile', { first: true }); };
 
   /* PIN 입력 화면 (confirm:true 이면 두 번 입력해 맞는지 확인) */
   function pinScreen(o) {
     var val = '', first = null;
     function draw(msg, shake) {
-      render((o.back ? top('', o.back) : '') + '<div class="center gap2"><h2>' + esc(first ? '한 번 더 눌러 주세요' : o.title) + '</h2>' +
+      render((o.back ? top('', o.back) : '') + '<div class="center gap2"><h2>' + esc(first ? '한 번 더 눌러 주세요' : o.title) + '</h2>' + (o.note && !first ? '<p class="sm">' + esc(o.note) + '</p>' : '') +
         '<div class="pins' + (shake ? ' shake' : '') + '" aria-label="입력한 자릿수">' + [0, 1, 2, 3].map(function (i) { return '<i class="' + (i < val.length ? 'on' : '') + '"></i>'; }).join('') + '</div>' +
         '<p class="sm" style="min-height:24px">' + esc(msg || '') + '</p>' +
         '<div class="keypad gap">' + ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'].map(function (k) { return k === '' ? '<span></span>' : '<button data-act="pk" data-k="' + k + '">' + k + '</button>'; }).join('') + '</div>' +
@@ -116,7 +117,7 @@
     cur.pid = null; cur.restAt = 0; cur.restExtra = 0;
     var s = store.get();
     var html = '<div class="center gap"><h1>누가 공부할까요?</h1></div>';
-    if (!s.profiles.length) html += '<div class="card gap2 center"><p>아직 아이 프로필이 없어요.<br>부모 화면에서 만들어 주세요.</p></div>';
+    if (!s.profiles.length) html += '<div class="card gap2 center"><p>아직 아이 프로필이 없어요.</p><div class="gap"><button class="btn big" data-act="begin">프로필 만들기</button></div></div>';
     else html += '<div class="pgrid gap2">' + s.profiles.map(function (p) {
       return '<button class="pbtn" data-act="pick" data-id="' + p.id + '">' + KN.ui.avatar(p, 'lg') + '<span>' + esc(p.name) + '</span><small>' + pgrade(p.grade) + ' · 레벨 ' + KN.rewards.level(p.xp) + '</small></button>';
     }).join('') + '</div>';
@@ -124,7 +125,10 @@
     render(html);
   };
   acts.pick = function (t) { cur.pid = t.getAttribute('data-id'); store.get().last = cur.pid; go('home'); };
-  acts.parent = function () { pinScreen({ title: '부모 비밀번호를 눌러 주세요', back: 'toprofiles', check: function (v) { return KN.hash(v) === store.get().pin; }, ok: function () { go('parent'); } }); };
+  acts.parent = function () {
+    /* 부모 비밀번호는 처음 부모 화면에 들어갈 때 정한다 */
+    if (!store.get().pin) return pinScreen({ title: '부모 비밀번호 4자리를 정해 주세요', note: '아이가 기록·설정을 못 바꾸게 비밀번호를 정해요.', confirm: true, back: 'toprofiles', ok: function (pin) { store.get().pin = KN.hash(pin); save(); go('parent'); toast('비밀번호를 정했어요.'); } });
+    pinScreen({ title: '부모 비밀번호를 눌러 주세요', back: 'toprofiles', check: function (v) { return KN.hash(v) === store.get().pin; }, ok: function () { go('parent'); } }); };
   acts.toprofiles = function () { go('profiles'); };
 
   views.home = function () {
@@ -273,6 +277,7 @@
     sum.newBadges.forEach(function (b) { h += '<div class="badge"><div class="bm">★</div><div><b>새 배지: ' + esc(b.name) + '</b><div class="sm">' + esc(b.desc) + '</div></div></div>'; });
     var wrongN = cur.results.filter(function (x, i) { return x.score < 0.999 && !r.items[i].q.noReview; }).length;
     if (wrongN) h += '<p class="sm gap">틀린 문제 ' + wrongN + '개는 내일부터 1일, 3일, 7일 간격으로 다시 나와요.</p>';
+    h += '<div class="gap"><button class="btn soft" data-act="sharetoday">엄마·아빠에게 오늘 공부 보내기</button></div>';
     h += '<div class="gap2"><button class="btn big" data-act="again">' + (node ? '한 판 더' : '홈으로') + '</button></div><div class="row gap"><button class="btn soft grow" data-act="' + (node ? 'tosubj' : 'tohome') + '">' + (node ? '단원 보기' : '홈') + '</button>' + (node ? '<button class="btn soft grow" data-act="tohome">홈으로</button>' : '') + '</div>';
     render(h);
   };
@@ -320,13 +325,57 @@
   acts.badges = function () { go('badges'); };
 
   /* ---------- 부모 화면 ---------- */
+  /* 아이별 한눈 요약 카드: 숫자는 모두 기록(p.rounds·p.today·p.badges)에서 계산 */
+  function summaryCard(p) {
+    var S = KN.summary, wk = S.week(p), dy = S.day(p), days = S.last7();
+    var dots = '<div class="wk" aria-label="최근 7일 중 공부한 날 ' + wk.days + '일">' + days.map(function (d) {
+      return '<span class="wd"><i class="' + (wk.played[d] ? 'on' : '') + '"></i><small>' + S.wday(d) + '</small></span>';
+    }).join('') + '</div>';
+    var subj = wk.subjects.length ? wk.subjects.map(function (s) { return '<span class="chip">' + esc(s.name) + ' ' + s.plays + '판 · 정답 ' + s.pct + '%</span>'; }).join(' ') : '<span class="sm">최근 7일은 아직 푼 판이 없어요.</span>';
+    var lb = S.lastBadge(p);
+    return '<div class="card sumc"><div class="row">' + KN.ui.avatar(p, 'sm') + '<div class="grow"><b>' + esc(p.name) + '</b><div class="sm">' + pgrade(p.grade) + ' · 레벨 ' + KN.rewards.level(p.xp) + ' · 하루 ' + (p.limitMin || 30) + '분</div></div></div>' +
+      '<div class="sumrow"><span class="k">오늘 공부</span><b>' + S.todayMin(p) + '분</b><span class="sm">(' + dy.plays + '판)</span></div>' +
+      '<div class="sumrow"><span class="k">이번 주</span><b>' + wk.days + '일</b><span class="sm">공부했어요</span></div>' + dots +
+      '<div class="chips gap">' + subj + '</div>' +
+      '<div class="sumrow"><span class="k">다시 볼 문제</span><b>' + p.wrong.length + '개</b>' + (lb ? '<span class="k" style="margin-left:auto">최근 배지</span><b>' + esc(lb) + '</b>' : '') + '</div>' +
+      '<div class="row gap wrap"><button class="btn small green grow" style="flex-basis:100%" data-act="sendrec" data-id="' + p.id + '">기록 보내기</button><button class="btn small soft grow" data-act="record" data-id="' + p.id + '">기록 보기</button><button class="btn small soft grow" data-act="pset" data-id="' + p.id + '">설정</button></div></div>';
+  }
+
+  /* ---------- 기록 보내기 (사용자가 누를 때만. 앱이 몰래 보내지 않는다) ---------- */
+  function shareText(text) {
+    var done = function () { toast('복사했어요. 붙여 넣어 보내세요.'); };
+    var manual = function () {
+      sheet('<h2>글을 복사해 보내세요</h2><textarea class="t gap" id="shtx" readonly>' + esc(text) + '</textarea><div class="gap2"><button class="btn soft" data-sa="x">닫기</button></div>');
+      sheetActs.x = closeSheet;
+      var ta = document.getElementById('shtx'); if (ta) { ta.focus(); ta.select(); }
+    };
+    if (navigator.share) {
+      navigator.share({ title: '꿈나무 배움터', text: text }).catch(function (e) { if (!e || e.name !== 'AbortError') copy(); });
+    } else copy();
+    function copy() {
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, manual); else manual();
+    }
+  }
+  acts.sendrec = function (t) {
+    var p = store.profile(t.getAttribute('data-id')), kind = 'today';
+    function draw() {
+      sheet('<h2>' + esc(p.name) + ' 기록 보내기</h2><div class="row gap"><button class="btn small ' + (kind === 'today' ? 'green' : 'soft') + ' grow" data-sa="k1">오늘</button><button class="btn small ' + (kind === 'week' ? 'green' : 'soft') + ' grow" data-sa="k2">이번 주(7일)</button></div>' +
+        '<div class="card gap sharetxt" id="shprev">' + esc(KN.summary.text(p, kind)).split('\n').join('<br>') + '</div>' +
+        '<p class="sm gap">별명과 공부 요약만 담겨요. 보내기를 누를 때만 공유창이 열려요.</p>' +
+        '<div class="row gap2"><button class="btn soft grow" data-sa="x">닫기</button><button class="btn green grow" data-sa="send">보내기</button></div>');
+    }
+    sheetActs.k1 = function () { kind = 'today'; draw(); };
+    sheetActs.k2 = function () { kind = 'week'; draw(); };
+    sheetActs.x = closeSheet;
+    sheetActs.send = function () { shareText(KN.summary.text(p, kind)); };
+    draw();
+  };
+  acts.sharetoday = function () { var p = P(); if (p) shareText(KN.summary.text(p, 'today')); };
+
   views.parent = function () {
     var s = store.get();
     var h = top('부모 화면', 'toprofiles');
-    h += s.profiles.map(function (p) {
-      return '<div class="card"><div class="row">' + KN.ui.avatar(p, 'sm') + '<div class="grow"><b>' + esc(p.name) + '</b><div class="sm">' + pgrade(p.grade) + ' · 레벨 ' + KN.rewards.level(p.xp) + ' · 하루 ' + (p.limitMin || 30) + '분</div></div></div>' +
-        '<div class="row gap wrap"><button class="btn small soft grow" data-act="record" data-id="' + p.id + '">기록 보기</button><button class="btn small soft grow" data-act="pset" data-id="' + p.id + '">설정</button></div></div>';
-    }).join('') || '<div class="card center">프로필이 없어요.</div>';
+    h += s.profiles.map(summaryCard).join('') || '<div class="card center">프로필이 없어요.</div>';
     h += '<div class="gap"><button class="btn big green" data-act="addprofile">프로필 추가</button></div>';
     h += '<h3 class="gap2">백업과 복원</h3><p class="sm">기록은 이 기기에만 있어요. 기기를 바꾸거나 앱 데이터를 지우기 전에 내보내기로 파일을 저장해 두세요.</p>' +
       '<div class="row gap"><button class="btn soft grow" data-act="export">내보내기</button><button class="btn soft grow" data-act="import">가져오기</button></div>';

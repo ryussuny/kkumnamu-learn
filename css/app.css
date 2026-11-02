@@ -100,6 +100,15 @@ h3 { font-size: 18px; }
 .dots i.no { background: var(--bad); }
 .dots i.now { background: var(--accent); }
 .qcard { background: #fff; border-radius: 26px; padding: 18px 16px; box-shadow: var(--shadow); min-height: 150px; }
+.sumc { margin-bottom: 12px; }
+.sumrow { display: flex; align-items: baseline; gap: 8px; margin-top: 8px; }
+.sumrow .k { font-size: 13px; color: #6b7280; }
+.wk { display: flex; gap: 6px; margin-top: 8px; }
+.wk .wd { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.wk .wd i { width: 16px; height: 16px; border-radius: 50%; background: #eadfcf; }
+.wk .wd i.on { background: #4cb782; }
+.wk .wd small { font-size: 11px; color: #6b7280; }
+.sharetxt { font-size: 15px; line-height: 1.5; word-break: keep-all; }
 .credit { font-size: 12px; color: #6b7280; text-align: center; margin-top: 6px; }
 .qcard .tag { font-size: 13px; font-weight: 800; color: var(--c); margin-bottom: 6px; }
 .prompt { font-size: 21px; line-height: 1.6; font-weight: 700; }

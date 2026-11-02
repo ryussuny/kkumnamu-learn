@@ -124,11 +124,13 @@
       var stk = p.streak || (p.streak = { last: null, n: 0 });
       if (stk.last !== today) { stk.n = (stk.last && KN.dayDiff(stk.last, today) === 1) ? stk.n + 1 : 1; stk.last = today; }
 
-      p.rounds.push({ t: Date.now(), d: today, subj: node.subj, unit: node.unit, tier: node.tier, rate: Math.round(rate * 100) / 100, n: total });
+      var rec = { t: Date.now(), d: today, subj: node.subj, unit: node.unit, tier: node.tier, rate: Math.round(rate * 100) / 100, n: total };
+      p.rounds.push(rec);
       if (p.rounds.length > 300) p.rounds = p.rounds.slice(-300);
 
       var ctx = { node: node, unit: round.unit, rate: rate };
       var newBadges = KN.rewards.award(p, ctx);
+      if (newBadges.length) rec.nb = newBadges.map(function (b) { return b.id; });   /* 그날 받은 배지(부모 요약·공유 글용) */
       var lvAfter = KN.rewards.level(p.xp);
       return { rate: rate, score: score, total: total, stars: stars, coins: coins, xp: xpGain, moved: moved, newPos: newPos, newBadges: newBadges, levelUp: lvAfter > lvBefore ? lvAfter : 0, graduated: graduatedNow, streak: stk.n };
     },

@@ -38,7 +38,9 @@
     stopClock();
     closeSheet();
     var tt = document.getElementById('toast'); if (tt) tt.remove();   /* 화면이 바뀌면 안내 글도 지움 */
-    cur.view = view;
+    if (cur.mu) { cur.mu.destroy(); cur.mu = null; }
+    if (cur.sp) { cur.sp.stop(); cur.sp = null; }
+    cur.view = view; cur.va = arg;
     (views[view] || views.profiles)(arg);
   }
   function nodeLabel(n) { var u = KN.unit(n.unit); return u.name + (u.tiers > 1 ? ' ' + n.tier + '단계' : ''); }
@@ -57,6 +59,7 @@
     clock = setInterval(function () {
       var p = P(); if (!p || document.hidden || document.getElementById('shade')) return;
       var sec = KN.engine.tick(p, 1);
+      if (KN.days.check(p)) toast('오늘 목표를 채웠어요! 도장을 받았어요 ★');
       if (sec % 15 === 0) save();
       var lim = (p.limitMin || 30) * 60 + (cur.restExtra || 0);   /* '10분만 더' 를 고르면 그만큼 뒤로 미룸 */
       if (sec >= lim) restSheet(p, sec);
@@ -82,7 +85,7 @@
   };
 
   views.welcome = function () {
-    render('<div class="center gap2"><h1>꿈나무 배움터</h1><p class="gap">초등 1학년부터 중학교 3학년까지,<br>수학·영어·국어·성경·두뇌 게임을<br>단계별로 풀어 보는 앱이에요.</p>' +
+    render('<div class="center gap2"><h1>꿈나무 배움터</h1><p class="gap">초등 1학년부터 중학교 3학년까지,<br>숫자 탐험대·영어 모험·말글 놀이터·<br>말씀 보물찾기·반짝 두뇌 게임에<br>음악과 그림 놀이까지 있는 앱이에요.</p>' +
       '<div class="gap2"><button class="btn big" data-act="begin">시작하기</button></div>' +
       '<p class="sm gap2">별명만 써요. 사진·녹음·실명은 받지 않고,<br>기록은 이 기기 안에만 저장돼요.</p></div>');
   };
@@ -139,13 +142,20 @@
     h += '<div class="bubble">' + esc(KN.say(p.char, 'hi', p.name, new Date().getDate() + p.rounds.length)) + '</div>';
     var streak = p.streak && p.streak.last === KN.today() ? p.streak.n : (p.streak && p.streak.last && KN.dayDiff(p.streak.last, KN.today()) === 1 ? p.streak.n : 0);
     if (store.saveFailed) h += '<div class="banner same gap">이 브라우저에서는 기록을 저장할 수 없어요. (사생활 보호 모드이거나 저장 공간이 가득 찼을 수 있어요) 부모 화면에서 백업 파일을 자주 저장해 주세요.</div>';
-    h += '<div class="row gap wrap"><span class="chip warm">' + (streak ? streak + '일째 공부 중' : '오늘 첫 공부를 시작해 봐요') + '</span><span class="chip">오늘 ' + Math.floor(((p.today && p.today.d === KN.today()) ? p.today.sec : 0) / 60) + '분 / 권장 ' + (p.limitMin || 30) + '분</span></div>';
+    h += '<div class="row gap wrap"><span class="chip warm">' + (streak ? streak + '일째 공부 중' : '오늘 첫 공부를 시작해 봐요') + '</span><span class="chip">오늘 ' + KN.summary.todayMin(p) + '분 / 권장 ' + (p.limitMin || 30) + '분</span></div>';
+    var gp = KN.days.progress(p), gw = Math.min(100, Math.round(100 * Math.max(gp.plays / gp.goalPlays, gp.min / gp.goalMin)));
+    h += '<div class="card goalc gap"><div class="row between"><div><b>' + KN.days.dateLabel(KN.today()) + '</b><div class="sm" id="goaltx">오늘의 목표 · ' + (gp.plays > gp.goalPlays ? gp.plays + '판 (목표 ' + gp.goalPlays + '판)' : '판 ' + gp.plays + '/' + gp.goalPlays) + ' · ' + gp.min + '분 / ' + gp.goalMin + '분</div></div>' +
+      '<div class="stamp' + (gp.done ? ' on' : '') + '" aria-label="' + (gp.done ? '오늘 도장을 받았어요' : '아직 도장이 없어요') + '">' + (gp.done ? '★<small>도장</small>' : '<small>도장 칸</small>') + '</div></div>' +
+      '<div class="gbar"><span style="width:' + gw + '%"></span></div><div class="sm">' + (gp.done ? '오늘 목표를 채웠어요! 도장을 받았어요.' : gp.goalPlays + '판을 하거나 ' + gp.goalMin + '분을 채우면 도장을 받아요.') + '</div></div>';
     h += '<div class="sgrid gap2">' + KN.subjects.map(function (s, i) {
       var L = KN.ladder(s.id); if (!L.length) return '';
       var n = KN.engine.node(p, s.id), u = KN.unit(n.unit);
-      return '<button class="sbtn' + (i === 4 ? ' wide' : '') + '" style="background:' + s.color + ';--c:' + s.dark + '" data-act="subj" data-s="' + s.id + '"><span class="g">' + s.glyph + '</span><div><b>' + s.name + '</b><br><span>' + esc(u.name) + (u.tiers > 1 ? ' ' + n.tier + '단계' : '') + '</span></div></button>';
+      return '<button class="sbtn' + (i === 4 ? ' wide' : '') + '" style="background:' + s.color + ';--c:' + s.dark + '" data-act="subj" data-s="' + s.id + '"><span class="g">' + s.glyph + '</span><div><b>' + s.fun + '</b><br><span>' + esc(u.name) + (u.tiers > 1 ? ' ' + n.tier + '단계' : '') + '</span></div></button>';
+    }).join('') + KN.activities.map(function (a) {
+      return '<button class="sbtn" style="background:' + a.color + ';--c:' + a.dark + '" data-act="' + a.id + 'room" data-s="' + a.id + '"><span class="g">' + a.glyph + '</span><div><b>' + a.fun + '</b><br><span>' + (a.id === 'music' ? '건반 · 따라 치기 · 내 노래' : '그림판 · 색칠 놀이') + '</span></div></button>';
     }).join('') + '</div>';
     h += '<div class="row gap2 wrap"><button class="btn soft grow" data-act="review">다시 보기 (' + p.wrong.length + (due ? ', 오늘 ' + due : '') + ')</button><button class="btn soft grow" data-act="closet">꾸미기</button><button class="btn soft grow" data-act="badges">배지 ' + p.badges.length + '</button></div>';
+    h += '<div class="gap"><button class="btn soft" style="width:100%" data-act="archive">기록 보관함 (달력 · 내 작품)</button></div>';
     render(h);
   };
   acts.subj = function (t) { go('subject', t.getAttribute('data-s')); };
@@ -153,7 +163,7 @@
   views.subject = function (sid) {
     var p = P(), s = KN.subject(sid), L = KN.ladder(sid), pos = KN.engine.pos(p, sid), here = L[pos];
     cur.subj = sid;
-    var h = top(s.name, 'tohome', pills(p));
+    var h = top(s.fun, 'tohome', pills(p));
     h += '<div class="card" style="--c:' + s.dark + '"><div class="sm">지금 단계</div><h2>' + esc(nodeLabel(here)) + '</h2><div class="sm">' + KN.gradeRange(KN.unit(here.unit)) + '</div><div class="gap"><button class="btn big" style="background:' + s.dark + '" data-act="play" data-i="' + pos + '">이어서 하기</button></div></div>';
     h += sid === 'brain' ? '<p class="sm gap">게임을 연습하면 그 게임이 점점 쉬워질 수 있어요. 85% 이상이면 다음 단계, 40% 이하면 한 단계 쉬운 곳으로 가요. 아무 게임이나 골라서 해도 좋아요.</p>' : '<p class="sm gap">한 판은 10문제예요. 85% 이상 맞히면 다음 단계, 40% 이하면 한 단계 쉬운 곳으로 가요. 아래에서 아무 단원이나 골라 앞 학년 복습이나 다음 학년 도전을 해도 좋아요.</p>';
     var lastG = null;
@@ -188,9 +198,9 @@
     h += '<div class="card"><b>틀렸던 문제 ' + p.wrong.length + '개</b><div class="sm">오늘 다시 볼 차례: ' + due + '개 · 틀린 문제는 1일, 3일, 7일 간격으로 다시 나와요.</div><div class="gap"><button class="btn big green" data-act="startreview">지금 복습하기 (최대 10문제)</button></div></div>';
     var list = p.wrong.slice().sort(function (a, b) { return a.due < b.due ? -1 : a.due > b.due ? 1 : 0; });
     h += list.slice(0, 40).map(function (w) {
-      var sub = KN.subject(w.subj), u = KN.unit(w.unit), q = w.q;
+      var u = KN.unit(w.unit), q = w.q;
       var when = w.due <= t ? '오늘 복습' : (KN.dayDiff(t, w.due) + '일 뒤');
-      return '<details class="wl"><summary>' + KN.rich(String(q.prompt).split('\n').slice(-1)[0].slice(0, 70)) + '<div class="meta">' + esc(sub ? sub.name : '') + ' · ' + esc(u ? u.name : '') + ' · ' + when + ' · 상자 ' + w.box + '/3</div></summary><div class="ans"><b>정답: ' + KN.showAns(q.answer) + '</b>' + (q.explain ? '<div class="sm">' + KN.rich(q.explain) + '</div>' : '') + '</div></details>';
+      return '<details class="wl"><summary>' + KN.rich(String(q.prompt).split('\n').slice(-1)[0].slice(0, 70)) + '<div class="meta">' + esc(KN.funName(w.subj)) + ' · ' + esc(u ? u.name : '') + ' · ' + when + ' · 상자 ' + w.box + '/3</div></summary><div class="ans"><b>정답: ' + KN.showAns(q.answer) + '</b>' + (q.explain ? '<div class="sm">' + KN.rich(q.explain) + '</div>' : '') + '</div></details>';
     }).join('');
     render(h);
   };
@@ -272,6 +282,7 @@
       else if (sum.moved < 0) h += '<div class="banner down">한 단계 쉬운 곳에서 다져 봐요 → ' + esc(nodeLabel(L[sum.newPos])) + '</div>';
       else h += '<div class="banner same">이 단계에서 한 번 더 연습하면 다음 단계가 열려요. (85% 이상 맞히면 올라가요)</div>';
     }
+    if (sum.stamp) h += '<div class="banner lv">오늘 목표를 채웠어요! 도장을 받았어요 ★</div>';
     if (sum.graduated) h += '<div class="banner up">다시 맞힌 문제가 ' + sum.graduated + '개 있어요. 틀렸던 문제를 이겨냈어요!</div>';
     if (sum.levelUp) h += '<div class="banner lv">캐릭터가 레벨 ' + sum.levelUp + ' 이 되었어요! 꾸미기 상점을 확인해 보세요.</div>';
     sum.newBadges.forEach(function (b) { h += '<div class="badge"><div class="bm">★</div><div><b>새 배지: ' + esc(b.name) + '</b><div class="sm">' + esc(b.desc) + '</div></div></div>'; });
@@ -324,6 +335,164 @@
   };
   acts.badges = function () { go('badges'); };
 
+  /* ---------- 딩동 음악실 · 알록달록 그림방 ---------- */
+  function merge(a, b) { var r = {}, k; for (k in a) r[k] = a[k]; for (k in b) r[k] = b[k]; return r; }
+  function actDone(p, kind) { KN.days.addAct(p, kind); if (KN.days.check(p)) toast('오늘 목표를 채웠어요! 도장을 받았어요 ★'); save(); }
+  acts.musicroom = function () { go('music'); };
+  views.music = function () {
+    var p = P();
+    var h = top(KN.funName('music'), 'tohome', pills(p)) + '<p class="sm">건반을 누르면 소리가 나요. 소리는 이 기기에서 만들고, 마이크는 쓰지 않아요.</p>' +
+      '<div class="mmenu gap">' + [['free', '자유 연주', '마음대로 건반을 눌러 봐요'], ['echo', '따라 쳐 봐요', '듣고 똑같이 따라 치기'], ['make', '내 노래 만들기', '누른 음을 녹음해 저장해요'], ['mel', '선율 따라 치기', '전래·고전 선율을 쳐 봐요']].map(function (m) {
+        return '<button class="mbtn" data-act="mgo" data-m="' + m[0] + '"><b>' + m[1] + '</b><span>' + m[2] + '</span></button>';
+      }).join('') + '</div><div class="gap"><button class="btn soft" style="width:100%" data-act="myworks">내 노래 ' + p.songs.length + '곡 듣기</button></div>';
+    render(h);
+  };
+  acts.mgo = function (t) { go('mplay', { mode: t.getAttribute('data-m') }); };
+  acts.tomusic = function () { go('music'); };
+  views.mplay = function (o) {
+    var p = P(), titles = { free: '자유 연주', echo: '따라 쳐 봐요', make: '내 노래 만들기', mel: '선율 따라 치기' };
+    render(top(titles[o.mode] || KN.funName('music'), 'tomusic', pills(p)) + '<div id="mhost"></div>');
+    startClock();
+    cur.mu = KN.musicUI.mount(document.getElementById('mhost'), { mode: o.mode, grade: p.grade, ins: 'piano' }, {
+      act: function () { actDone(p, 'music'); },
+      saveSong: function (name, ins, seq) { var why = KN.works.songAdd(p, name, ins, seq); if (!why) save(); return why; },
+      songsLeft: function () { return KN.works.MAX_SONG - p.songs.length; },
+      toast: toast
+    });
+  };
+  acts.drawroom = function () { go('drawroom'); };
+  views.drawroom = function () {
+    var p = P();
+    var h = top(KN.funName('draw'), 'tohome', pills(p)) + '<p class="sm">손가락으로 그려요. 사진이나 카메라는 쓰지 않아요.</p>' +
+      '<div class="gap"><button class="btn big" data-act="pgo" data-pic="">자유 그림판</button></div><h3 class="gap2">색칠 놀이</h3><div class="pgrid2 gap">' +
+      KN.draw.PICS.map(function (c) { return '<button class="pthumb" data-act="pgo" data-pic="' + c.id + '"><canvas width="160" height="120" data-pic="' + c.id + '"></canvas><span>' + esc(c.name) + '</span></button>'; }).join('') + '</div>' +
+      '<div class="gap"><button class="btn soft" style="width:100%" data-act="myworks">내 그림 ' + KN.works.artList(p.id).length + '장 보기</button></div>';
+    render(h); KN.drawUI.thumbs(app);
+  };
+  acts.pgo = function (t) { go('paint', { pic: t.getAttribute('data-pic') || '' }); };
+  acts.todraw = function () { go('drawroom'); };
+  views.paint = function (o) {
+    var p = P(), pic = o.pic ? KN.draw.pic(o.pic) : null;
+    render(top(pic ? pic.name + ' 색칠' : '자유 그림판', 'todraw', pills(p)) + '<div id="phost"></div>');
+    startClock();
+    cur.mu = KN.drawUI.mount(document.getElementById('phost'), { pic: o.pic }, {
+      act: function () { actDone(p, 'draw'); },
+      save: function (img, name, picId) { return KN.works.artAdd(p.id, { img: img, name: name, pic: picId }); },
+      toast: toast,
+      confirm: function (t, b, ok, fn) { confirmSheet(t, b, ok, fn, true); }
+    });
+  };
+
+  /* ---------- 기록 보관함 (달력 · 내 작품) ---------- */
+  acts.archive = function () { go('archive', { id: cur.pid, from: 'home' }); };
+  acts.myworks = function () { go('archive', { id: cur.pid, from: 'home', tab: 'works' }); };
+  acts.arcback = function () { if (cur.arc && cur.arc.from === 'parent') go('manage', cur.arc.id); else go('home'); };
+  acts.atab = function (t) { go('archive', merge(cur.arc, { tab: t.getAttribute('data-t') })); };
+  function monthShift(ym, k) { var a = ym.split('-'); return KN.today(new Date(+a[0], +a[1] - 1 + k, 1)).slice(0, 7); }
+  acts.amonth = function (t) { go('archive', merge(cur.arc, { ym: monthShift(cur.arc.ym || KN.today().slice(0, 7), +t.getAttribute('data-k')) })); };
+  function calendarHtml(p, ym) {
+    var a = ym.split('-'), y = +a[0], m = +a[1], rows = KN.days.monthGrid(y, m), today = KN.today(), studied = 0, stamps = 0;
+    var h = '<div class="calhead"><button class="back" data-act="amonth" data-k="-1" aria-label="이전 달">‹</button><h2>' + y + '년 ' + m + '월</h2><button class="back" data-act="amonth" data-k="1" aria-label="다음 달"' + (ym >= today.slice(0, 7) ? ' disabled' : '') + '>›</button></div>';
+    h += '<div class="cal"><div class="cw">' + '일월화수목금토'.split('').map(function (w) { return '<span>' + w + '</span>'; }).join('') + '</div>';
+    rows.forEach(function (row) {
+      h += '<div class="cw">' + row.map(function (d) {
+        if (!d) return '<span></span>';
+        var r = KN.days.get(p, d), act = KN.days.active(r), st = !!(r && r.goal);
+        if (act) studied++;
+        if (st) stamps++;
+        return '<button class="dcell' + (d === today ? ' today' : '') + (act ? ' act' : '') + (st ? ' stamp' : '') + '" data-act="aday" data-d="' + d + '"' + (d > today ? ' disabled' : '') + '><i>' + (+d.slice(8)) + '</i><b>' + (st ? '★' : act ? '●' : '') + '</b></button>';
+      }).join('') + '</div>';
+    });
+    return h + '</div><p class="sm gap" id="calsum">이 달에 공부한 날 ' + studied + '일 · 도장 ' + stamps + '개<br>★ 하루 목표를 채운 날 · ● 공부한 날<br>날짜를 누르면 그날 기록이 나와요.</p>';
+  }
+  acts.aday = function (t) {
+    var p = store.profile(cur.arc.id), d = t.getAttribute('data-d'), r = KN.days.get(p, d), nm = cur.arc.from === 'parent' ? KN.parentName : KN.funName;
+    var h = '<h2>' + KN.days.dateLabel(d) + '</h2>';
+    if (!KN.days.active(r)) h += '<p class="gap">이 날은 기록이 없어요.</p>';
+    else {
+      h += '<div class="sumrow"><span class="k">공부 시간</span><b>' + (r.sec ? KN.days.minutes(r) + '분' : '기록 없음') + '</b></div><div class="sumrow"><span class="k">푼 판</span><b>' + r.plays + '판</b></div>';
+      var ids = KN.subjects.map(function (s) { return s.id; }).concat(['review']).filter(function (id) { return r.subj[id]; });
+      h += '<div class="chips gap">' + (ids.length ? ids.map(function (id) { return '<span class="chip">' + esc(nm(id)) + ' ' + r.subj[id] + '판' + (id === 'review' ? '' : ' · 정답 ' + KN.days.pct(r.acc[id]) + '%') + '</span>'; }).join(' ') : '<span class="sm">푼 판이 없어요.</span>') + '</div>';
+      h += '<div class="sumrow"><span class="k">' + esc(nm('music')) + '</span><b>' + r.music + '번</b></div><div class="sumrow"><span class="k">' + esc(nm('draw')) + '</span><b>' + r.draw + '번</b></div>';
+      h += '<div class="sumrow"><span class="k">받은 배지</span><b>' + (r.nb.length ? esc(r.nb.map(KN.summary.badgeName).filter(Boolean).join(', ')) : '없어요') + '</b></div>';
+      h += '<div class="sumrow"><span class="k">하루 목표</span><b>' + (r.goal ? '★ 도장 받았어요' : '아직 못 채웠어요') + '</b></div>';
+    }
+    sheet(h + '<div class="gap2"><button class="btn soft" data-sa="x">닫기</button></div>'); sheetActs.x = closeSheet;
+  };
+  function worksHtml(p, admin) {
+    var art = KN.works.artList(p.id).slice().reverse(), md = function (d) { return (+d.slice(5, 7)) + '/' + (+d.slice(8)); };
+    var h = '<h3 class="gap">내 그림 (' + art.length + '/' + KN.works.MAX_ART + ')</h3>';
+    h += art.length ? '<div class="agrid gap">' + art.map(function (a) {
+      return '<div class="aitem"><button class="art" data-act="artview" data-id="' + a.id + '"><img src="' + a.img + '" alt="' + esc(a.name) + '"></button><small>' + md(a.d) + ' ' + esc(a.name) + '</small>' + (admin ? '<button class="btn danger small" data-act="artdel" data-id="' + a.id + '">지우기</button>' : '') + '</div>';
+    }).join('') + '</div>' : '<div class="card sm gap">아직 저장한 그림이 없어요. 알록달록 그림방에서 그려 보세요.</div>';
+    h += '<h3 class="gap2">내가 만든 노래 (' + p.songs.length + '/' + KN.works.MAX_SONG + ')</h3>';
+    h += p.songs.length ? p.songs.slice().reverse().map(function (s) {
+      var ins = KN.music.INS.filter(function (x) { return x.id === s.ins; })[0];
+      return '<div class="card srow gap"><button class="btn green small" data-act="songplay" data-id="' + s.id + '" aria-label="' + esc(s.name) + ' 듣기">▶</button><div class="grow"><b>' + esc(s.name) + '</b><div class="sm">' + md(s.d) + ' · ' + s.seq.length + '음 · ' + (ins ? ins.name : '') + '</div></div>' + (admin ? '<button class="btn danger small" data-act="songdel" data-id="' + s.id + '">지우기</button>' : '') + '</div>';
+    }).join('') : '<div class="card sm gap">아직 만든 노래가 없어요. 딩동 음악실의 "내 노래 만들기"에서 만들어요.</div>';
+    return h;
+  }
+  views.archive = function (o) {
+    o = o || {}; var p = store.profile(o.id); if (!p) return go('profiles');
+    var admin = o.from === 'parent', ym = o.ym || KN.today().slice(0, 7), tab = o.tab || 'cal';
+    cur.arc = o;
+    var h = top(admin ? p.name + ' 기록 보관함' : '기록 보관함', 'arcback');
+    h += '<div class="tabs"><button class="tabb' + (tab === 'cal' ? ' on' : '') + '" data-act="atab" data-t="cal">달력</button><button class="tabb' + (tab === 'works' ? ' on' : '') + '" data-act="atab" data-t="works">내 작품</button></div>';
+    render(h + (tab === 'cal' ? calendarHtml(p, ym) : worksHtml(p, admin)));
+  };
+  /* 지금 보는 아이: 보관함이면 cur.arc.id, 관리 화면이면 cur.va(아이 id) */
+  function viewPid() { return cur.view === 'archive' ? cur.arc.id : cur.view === 'manage' ? cur.va : cur.pid; }
+  acts.artview = function (t) {
+    var a = KN.works.artList(viewPid()).filter(function (x) { return x.id === t.getAttribute('data-id'); })[0];
+    if (!a) return;
+    sheet('<h2>' + esc(a.name) + '</h2><img class="artbig" src="' + a.img + '" alt="' + esc(a.name) + '"><p class="sm">' + KN.days.dateLabel(a.d) + '에 저장했어요.</p><div class="row gap2"><button class="btn green grow" data-sa="dl">이미지로 내려받기</button><button class="btn soft grow" data-sa="x">닫기</button></div>');
+    sheetActs.x = closeSheet;
+    sheetActs.dl = function () { var l = document.createElement('a'); l.href = a.img; l.download = 'kkumnamu-art-' + a.d + '.jpg'; document.body.appendChild(l); l.click(); l.remove(); toast('이미지로 내려받았어요.'); };
+  };
+  acts.songplay = function (t) {
+    var p = store.profile(viewPid()), s = p.songs.filter(function (x) { return x.id === t.getAttribute('data-id'); })[0];
+    if (!s) return;
+    if (cur.sp) cur.sp.stop();
+    cur.sp = KN.audio.playSeq(s.seq, s.ins); toast('♪ ' + s.name);
+  };
+  acts.artdel = function (t) {
+    var pid = viewPid(), id = t.getAttribute('data-id');
+    confirmSheet('이 그림을 지울까요?', '지우면 되돌릴 수 없어요.', '지우기', function () { KN.works.artRemove(pid, id); go(cur.view, cur.va); toast('지웠어요.'); }, true);
+  };
+  acts.songdel = function (t) {
+    var p = store.profile(viewPid()), id = t.getAttribute('data-id');
+    confirmSheet('이 노래를 지울까요?', '지우면 되돌릴 수 없어요.', '지우기', function () { KN.works.songRemove(p, id); save(); go(cur.view, cur.va); toast('지웠어요.'); }, true);
+  };
+
+  /* ---------- 부모: 관리 화면 (하루 목표 · 최근 30일 · 작품 관리) ---------- */
+  acts.manage = function (t) { go('manage', t.getAttribute('data-id')); };
+  acts.parc = function () { go('archive', { id: cur.va, from: 'parent' }); };
+  function goalNote(p) {
+    return p.goal.plays + '판을 하거나 ' + (p.goal.min ? '시간 ' + p.goal.min + '분' : '하루 권장 시간(' + p.limitMin + '분)') + '을 채우면 그날 달력에 도장이 찍혀요.';
+  }
+  views.manage = function (id) {
+    var p = store.profile(id); if (!p) return go('parent');
+    var h = top(p.name + ' 관리', 'toparent');
+    h += '<div class="card"><b>하루 목표</b><div class="row gap"><span class="grow">판 수</span><button class="btn soft small" data-act="gset" data-k="plays" data-v="-1" aria-label="판 수 줄이기">−</button><b class="gv" id="gpv">' + p.goal.plays + '판</b><button class="btn soft small" data-act="gset" data-k="plays" data-v="1" aria-label="판 수 늘리기">+</button></div>' +
+      '<div class="row gap"><span class="grow">시간</span><button class="btn soft small" data-act="gset" data-k="min" data-v="-1" aria-label="시간 줄이기">−</button><b class="gv" id="gmv">' + (p.goal.min ? p.goal.min + '분' : '권장 시간') + '</b><button class="btn soft small" data-act="gset" data-k="min" data-v="1" aria-label="시간 늘리기">+</button></div><p class="sm gap" id="gnote">' + goalNote(p) + '</p></div>';
+    h += '<h3 class="gap2">최근 30일 기록</h3><div class="card"><table class="rec" id="d30"><tr><th>날짜</th><th>시간</th><th>판 수</th><th>목표</th></tr>' + KN.days.recent(p, 30).map(function (x) {
+      var r = x.r, a = KN.days.active(r);
+      return '<tr' + (a ? '' : ' class="dim"') + '><td>' + esc(x.d.slice(5).replace('-', '/') + ' ' + KN.days.dateLabel(x.d).slice(-3, -2)) + '</td><td>' + (r && r.sec ? KN.days.minutes(r) + '분' : '-') + '</td><td>' + (r ? r.plays : 0) + '</td><td>' + (r && r.goal ? '★ 달성' : a ? '못 채움' : '-') + '</td></tr>';
+    }).join('') + '</table></div><p class="sm">옛 기록(이 기능이 생기기 전)은 판 수만 있고 시간은 "-"로 보여요.</p>';
+    h += '<div class="gap"><button class="btn soft" style="width:100%" data-act="parc">기록 보관함 보기 (달력)</button></div>';
+    h += '<h2 class="gap2">작품 관리</h2><p class="sm">지우기는 여기서만 할 수 있어요. 아이는 보기만 해요.</p>' + worksHtml(p, true);
+    render(h);
+  };
+  acts.gset = function (t) {
+    var p = store.profile(cur.va), k = t.getAttribute('data-k'), v = +t.getAttribute('data-v');
+    if (k === 'plays') p.goal.plays = Math.max(1, Math.min(10, p.goal.plays + v));
+    else p.goal.min = v > 0 ? Math.min(120, p.goal.min + 5) : (p.goal.min <= 5 ? 0 : p.goal.min - 5);
+    save();
+    document.getElementById('gpv').textContent = p.goal.plays + '판';
+    document.getElementById('gmv').textContent = p.goal.min ? p.goal.min + '분' : '권장 시간';
+    document.getElementById('gnote').textContent = goalNote(p);
+  };
+
   /* ---------- 부모 화면 ---------- */
   /* 아이별 한눈 요약 카드: 숫자는 모두 기록(p.rounds·p.today·p.badges)에서 계산 */
   function summaryCard(p) {
@@ -331,14 +500,14 @@
     var dots = '<div class="wk" aria-label="최근 7일 중 공부한 날 ' + wk.days + '일">' + days.map(function (d) {
       return '<span class="wd"><i class="' + (wk.played[d] ? 'on' : '') + '"></i><small>' + S.wday(d) + '</small></span>';
     }).join('') + '</div>';
-    var subj = wk.subjects.length ? wk.subjects.map(function (s) { return '<span class="chip">' + esc(s.name) + ' ' + s.plays + '판 · 정답 ' + s.pct + '%</span>'; }).join(' ') : '<span class="sm">최근 7일은 아직 푼 판이 없어요.</span>';
+    var subj = wk.subjects.length ? wk.subjects.map(function (s) { return '<span class="chip">' + esc(KN.parentName(s.id)) + ' ' + s.plays + '판 · 정답 ' + s.pct + '%</span>'; }).join(' ') : '<span class="sm">최근 7일은 아직 푼 판이 없어요.</span>';
     var lb = S.lastBadge(p);
     return '<div class="card sumc"><div class="row">' + KN.ui.avatar(p, 'sm') + '<div class="grow"><b>' + esc(p.name) + '</b><div class="sm">' + pgrade(p.grade) + ' · 레벨 ' + KN.rewards.level(p.xp) + ' · 하루 ' + (p.limitMin || 30) + '분</div></div></div>' +
       '<div class="sumrow"><span class="k">오늘 공부</span><b>' + S.todayMin(p) + '분</b><span class="sm">(' + dy.plays + '판)</span></div>' +
       '<div class="sumrow"><span class="k">이번 주</span><b>' + wk.days + '일</b><span class="sm">공부했어요</span></div>' + dots +
       '<div class="chips gap">' + subj + '</div>' +
       '<div class="sumrow"><span class="k">다시 볼 문제</span><b>' + p.wrong.length + '개</b>' + (lb ? '<span class="k" style="margin-left:auto">최근 배지</span><b>' + esc(lb) + '</b>' : '') + '</div>' +
-      '<div class="row gap wrap"><button class="btn small green grow" style="flex-basis:100%" data-act="sendrec" data-id="' + p.id + '">기록 보내기</button><button class="btn small soft grow" data-act="record" data-id="' + p.id + '">기록 보기</button><button class="btn small soft grow" data-act="pset" data-id="' + p.id + '">설정</button></div></div>';
+      '<div class="row gap wrap"><button class="btn small green grow" style="flex-basis:100%" data-act="sendrec" data-id="' + p.id + '">기록 보내기</button><button class="btn small soft grow" data-act="record" data-id="' + p.id + '">기록 보기</button><button class="btn small soft grow" data-act="manage" data-id="' + p.id + '">관리</button><button class="btn small soft grow" data-act="pset" data-id="' + p.id + '">설정</button></div></div>';
   }
 
   /* ---------- 기록 보내기 (사용자가 누를 때만. 앱이 몰래 보내지 않는다) ---------- */
@@ -442,7 +611,7 @@
       var pos = p.pos[s.id] == null ? KN.startIndex(s.id, p.grade) : p.pos[s.id], n = L[Math.min(pos, L.length - 1)];
       var rs = p.rounds.filter(function (r) { return r.subj === s.id; }), l5 = rs.slice(-5);
       var avg = l5.length ? Math.round(100 * l5.reduce(function (a, r) { return a + r.rate; }, 0) / l5.length) + '%' : '-';
-      return '<tr><td>' + s.name + '</td><td>' + esc(nodeLabel(n)) + '</td><td>' + rs.length + '</td><td>' + avg + '</td></tr>';
+      return '<tr><td>' + esc(KN.parentName(s.id)) + '</td><td>' + esc(nodeLabel(n)) + '</td><td>' + rs.length + '</td><td>' + avg + '</td></tr>';
     }).join('') + '</table></div>';
     h += '<div class="card"><b>요약</b><div class="sm">레벨 ' + KN.rewards.level(p.xp) + ' · 별 ' + p.stars + ' · 코인 ' + p.coins + ' · 배지 ' + p.badges.length + '개<br>다시 보기 목록 ' + p.wrong.length + '개 (이겨낸 문제 ' + (p.graduated || 0) + '개)<br>오늘 공부 ' + Math.floor(((p.today && p.today.d === KN.today()) ? p.today.sec : 0) / 60) + '분</div></div>';
     h += '<h3 class="gap2">최근 기록</h3><div class="card"><table class="rec">' + p.rounds.slice(-10).reverse().map(function (r) {
@@ -454,7 +623,9 @@
 
   acts.export = function () {
     var text = store.exportJSON(), name = 'kkumnamu-backup-' + KN.today() + '.json';
-    sheet('<h2>내보내기</h2><p class="sm gap">아래 버튼으로 파일을 저장하세요. 저장이 안 되면 글자를 복사해 두어도 돼요.</p><textarea class="t gap" id="bk" readonly>' + esc(text) + '</textarea><div class="row gap2"><button class="btn green grow" data-sa="dl">파일로 저장</button><button class="btn soft grow" data-sa="x">닫기</button></div>');
+    var art = KN.works.artSize(store.get().profiles.map(function (p) { return p.id; })), big = text.length > 200000;
+    sheet('<h2>내보내기</h2><p class="sm gap">아래 버튼으로 파일을 저장하세요.' + (big ? '' : ' 저장이 안 되면 글자를 복사해 두어도 돼요.') + '</p>' +
+      '<p class="sm gap" id="bkinfo">날짜별 기록과 그림 작품(' + art.count + '장), 내가 만든 노래도 함께 담겨요. 파일 크기 약 ' + Math.max(1, Math.round(text.length / 1024)) + 'KB' + (big ? ' — 그림이 많아 커졌어요. 글자 표시는 생략하고 파일로만 저장해요.' : '. 그림이 많으면 파일이 커져요.') + '</p>' + (big ? '' : '<textarea class="t gap" id="bk" readonly>' + esc(text) + '</textarea>') + '<div class="row gap2"><button class="btn green grow" data-sa="dl">파일로 저장</button><button class="btn soft grow" data-sa="x">닫기</button></div>');
     sheetActs.x = closeSheet;
     sheetActs.dl = function () {
       try {
@@ -475,7 +646,7 @@
     });
     sheetActs.go = function () {
       var text = document.getElementById('bt').value || fileText;
-      try { var n = store.importJSON(text); closeSheet(); go('parent'); toast('프로필 ' + n + '개를 가져왔어요.'); }
+      try { store.artLost = false; var n = store.importJSON(text); closeSheet(); go('parent'); toast('프로필 ' + n + '개를 가져왔어요.' + (store.artLost ? ' (저장 공간이 모자라 일부 그림은 못 가져왔어요)' : '')); }
       catch (e) { toast('가져오지 못했어요: ' + (e.message || '파일 형식이 달라요')); }
     };
   };

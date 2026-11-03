@@ -26,7 +26,7 @@
     });
     var list = [];
     KN.subjects.forEach(function (s) {
-      var v = subj[s.id]; if (v) list.push({ id: s.id, name: s.name, plays: v.plays, pct: v.n ? Math.round(100 * v.ok / v.n) : 0 });
+      var v = subj[s.id]; if (v) list.push({ id: s.id, name: s.fun, orig: s.name, plays: v.plays, pct: v.n ? Math.round(100 * v.ok / v.n) : 0 });
     });
     return { subjects: list, review: review, plays: plays, days: Object.keys(played).length, played: played, newBadges: nb };
   }
@@ -51,11 +51,16 @@
       } else {
         r = over(p, [KN.today()]);
         head += md(KN.today());
-        if (!r.plays) return head + ' — 오늘은 아직 공부 기록이 없어요.\n' + URL;
+        if (!r.plays && !KN.days.active(KN.days.get(p, KN.today()))) return head + ' — 오늘은 아직 공부 기록이 없어요.\n' + URL;
         parts.push('공부 ' + KN.summary.todayMin(p) + '분');
       }
       r.subjects.forEach(function (s) { parts.push(s.name + ' ' + s.plays + '판(정답 ' + s.pct + '%)'); });
       if (r.review) parts.push('다시 보기 ' + r.review + '판');
+      if (kind !== 'week') {
+        var dr = KN.days.get(p, KN.today());
+        if (dr && dr.music) parts.push(KN.funName('music') + ' ' + dr.music + '번');
+        if (dr && dr.draw) parts.push(KN.funName('draw') + ' ' + dr.draw + '번');
+      }
       parts.push('다시 볼 문제 ' + p.wrong.length + '개');
       var nb = r.newBadges.map(badgeName).filter(Boolean);
       if (nb.length) parts.push('새 배지: ' + nb.slice(0, 3).join(', ') + (nb.length > 3 ? ' 외 ' + (nb.length - 3) + '개' : ''));

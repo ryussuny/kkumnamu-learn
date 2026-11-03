@@ -132,7 +132,9 @@
       var newBadges = KN.rewards.award(p, ctx);
       if (newBadges.length) rec.nb = newBadges.map(function (b) { return b.id; });   /* 그날 받은 배지(부모 요약·공유 글용) */
       var lvAfter = KN.rewards.level(p.xp);
-      return { rate: rate, score: score, total: total, stars: stars, coins: coins, xp: xpGain, moved: moved, newPos: newPos, newBadges: newBadges, levelUp: lvAfter > lvBefore ? lvAfter : 0, graduated: graduatedNow, streak: stk.n };
+      KN.days.addRound(p, rec);                      /* 날짜별 기록(1일 학습량) */
+      var stamp = KN.days.check(p, rec.d);           /* 오늘 목표를 이번 판으로 채웠으면 도장 */
+      return { stamp: stamp, rate: rate, score: score, total: total, stars: stars, coins: coins, xp: xpGain, moved: moved, newPos: newPos, newBadges: newBadges, levelUp: lvAfter > lvBefore ? lvAfter : 0, graduated: graduatedNow, streak: stk.n };
     },
 
     /* 공부 시간(초) 누적 */
@@ -140,6 +142,7 @@
       var d = KN.today();
       if (!p.today || p.today.d !== d) p.today = { d: d, sec: 0 };
       p.today.sec += sec;
+      KN.days.addSec(p, sec);
       return p.today.sec;
     }
   };

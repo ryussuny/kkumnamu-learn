@@ -1,6 +1,6 @@
 /* 꿈나무 배움터 서비스 워커 — 모든 파일을 한 번 받아 두고 인터넷 없이 쓴다.
    (scripts/build-sw.js 가 이 파일을 sw.js 로 만든다. 직접 고치지 말고 template 을 고칠 것) */
-var VERSION = 'kn-3045ca78de';
+var VERSION = 'kn-8c39946d2f';
 var ASSETS = [
  "./",
  "assets/chars/astronaut.png",
@@ -27,6 +27,8 @@ var ASSETS = [
  "js/bible-verses.js",
  "js/brain-gen.js",
  "js/curriculum.js",
+ "js/days.js",
+ "js/draw-data.js",
  "js/eng-data.js",
  "js/eng-gen.js",
  "js/engine.js",
@@ -37,12 +39,16 @@ var ASSETS = [
  "js/math-gen-3.js",
  "js/math-gen-4.js",
  "js/mathlib.js",
+ "js/music-data.js",
  "js/rewards.js",
  "js/store.js",
  "js/summary.js",
  "js/ui-brain.js",
+ "js/ui-draw.js",
+ "js/ui-music.js",
  "js/ui-parts.js",
  "js/util.js",
+ "js/works.js",
  "manifest.json"
 ];
 

@@ -245,3 +245,75 @@ table.rec th { color: var(--soft); font-size: 13px; }
 .snum button { min-width: 44px; min-height: 48px; border-radius: 12px; background: #fff; border: 2px solid var(--line); font-weight: 800; font-size: 20px; }
 .hint { font-size: 14px; color: var(--soft); text-align: center; margin-top: 8px; }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* 오늘의 목표 · 도장 */
+.goalc .stamp { width: 62px; height: 62px; border-radius: 50%; border: 3px dashed #d8cdb8; color: #b0a58f; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 22px; font-weight: 900; line-height: 1; transform: rotate(-8deg); flex: none; }
+.goalc .stamp small { font-size: 12px; font-weight: 800; }
+.goalc .stamp.on { border: 3px solid #d9486a; color: #d9486a; background: #fff0f4; }
+.gbar { height: 10px; border-radius: 6px; background: #f1e8d8; overflow: hidden; margin: 10px 0 6px; }
+.gbar span { display: block; height: 100%; background: #4cb782; border-radius: 6px; }
+.gv { min-width: 74px; text-align: center; }
+table.rec tr.dim td { color: #a9a0b8; }
+
+/* 달력 · 보관함 */
+.tabs { display: flex; gap: 8px; margin: 4px 0 10px; }
+.tabb { flex: 1; min-height: 46px; border-radius: 14px; background: #fff; border: 2px solid var(--line); font-weight: 800; }
+.tabb.on { background: var(--accent); border-color: var(--accent-d); color: #fff; }
+.calhead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.calhead h2 { flex: 1; text-align: center; }
+.calhead .back:disabled { opacity: .3; }
+.cal { background: #fff; border-radius: 20px; padding: 8px; box-shadow: var(--shadow); }
+.cw { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px; }
+.cw > span { text-align: center; font-size: 13px; color: var(--soft); font-weight: 700; }
+.dcell { aspect-ratio: 1 / 1; border-radius: 12px; background: #faf5ea; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; line-height: 1.1; }
+.dcell i { font-style: normal; font-size: 15px; font-weight: 700; }
+.dcell b { font-size: 14px; min-height: 16px; color: #4cb782; }
+.dcell.stamp b { color: #d9486a; font-size: 17px; }
+.dcell.act { background: #e8f7ef; }
+.dcell.stamp { background: #fff0f4; }
+.dcell.today { outline: 3px solid #4aa3ff; outline-offset: -2px; }
+.dcell:disabled { opacity: .35; }
+
+/* 내 작품 */
+.agrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.aitem { display: flex; flex-direction: column; gap: 4px; align-items: stretch; }
+.aitem small { font-size: 12px; color: var(--soft); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.art { display: block; border-radius: 12px; overflow: hidden; border: 2px solid var(--line); background: #fff; aspect-ratio: 4 / 3; }
+.art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.artbig { width: 100%; border-radius: 14px; border: 2px solid var(--line); margin: 10px 0; display: block; }
+.srow { display: flex; align-items: center; gap: 10px; }
+
+/* 딩동 음악실 */
+.mmenu { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.mbtn { background: #fff; border-radius: 22px; padding: 18px 12px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 4px; text-align: left; border: 3px solid #ffd9b0; }
+.mbtn b { font-size: 19px; }
+.mbtn span { font-size: 13px; color: var(--soft); line-height: 1.35; }
+.insrow { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 6px 0; }
+.chipb { padding: 6px 14px; min-height: 40px; border-radius: 99px; background: #fff; border: 2px solid var(--line); font-weight: 700; font-size: 15px; }
+.chipb.on { background: #ffe9cf; border-color: #ff9442; }
+.mmsg { min-height: 52px; text-align: center; font-weight: 700; margin: 8px 0; }
+.mctrl { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.keys { display: flex; gap: 5px; margin-top: 8px; touch-action: manipulation; }
+.keys.lock { opacity: .75; pointer-events: none; }
+.key { flex: 1; height: 220px; border-radius: 10px 10px 18px 18px; border: 3px solid rgba(0,0,0,.18); display: flex; align-items: flex-end; justify-content: center; padding-bottom: 12px; font-weight: 900; font-size: 15px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.45); box-shadow: 0 6px 0 rgba(0,0,0,.22); touch-action: manipulation; }
+.key span { writing-mode: horizontal-tb; word-break: keep-all; text-align: center; line-height: 1.1; }
+.key.on { filter: brightness(1.25); transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,.22); }
+.key.next { outline: 4px solid #3a3352; outline-offset: 2px; animation: pulse .9s ease-in-out infinite; }
+.key.bad { animation: shake .3s; }
+@keyframes pulse { 50% { transform: translateY(5px); } }
+
+/* 알록달록 그림방 */
+.pgrid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.pthumb { background: #fff; border-radius: 18px; padding: 8px; box-shadow: var(--shadow); display: flex; flex-direction: column; align-items: center; gap: 4px; font-weight: 800; border: 3px solid #ffd0ea; }
+.pthumb canvas { width: 100%; height: auto; aspect-ratio: 4 / 3; border-radius: 10px; background: #fff; }
+.pwrap { position: relative; width: 100%; aspect-ratio: 4 / 3; background: #fff; border-radius: 16px; border: 3px solid #3a3352; overflow: hidden; touch-action: none; }
+.pwrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }
+.pwrap #po { pointer-events: none; }
+.ptools, .pstamps, .psz { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.ptool { flex: 1; min-height: 46px; padding: 4px 10px; border-radius: 14px; background: #fff; border: 2px solid var(--line); font-weight: 800; font-size: 15px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; }
+.ptool.on { background: #ffe3f1; border-color: #ff7aa2; }
+.ptool i { display: inline-block; border-radius: 50%; background: #3a3352; }
+.pal { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 10px; }
+.sw { aspect-ratio: 1 / 1; min-height: 44px; border-radius: 50%; border: 3px solid rgba(0,0,0,.15); }
+.sw.wh { border-color: #c9c0d6; }
+.sw.on { outline: 4px solid #3a3352; outline-offset: 2px; }

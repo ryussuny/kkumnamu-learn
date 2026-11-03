@@ -5,13 +5,22 @@
 (function (g) {
   var KN = g.KN = g.KN || {};
 
+  /* name = 원래 과목 이름(부모 화면용), fun = 아이에게 보이는 놀이 이름. 내부 id 는 기록 호환을 위해 바꾸지 않는다. */
   KN.subjects = [
-    { id: 'math', name: '수학', glyph: '수', color: '#ff8fa3', dark: '#d9486a' },
-    { id: 'eng', name: '영어', glyph: 'A', color: '#7cc4ff', dark: '#2e83cc' },
-    { id: 'kor', name: '국어', glyph: '가', color: '#ffc95e', dark: '#c98a00' },
-    { id: 'bible', name: '성경', glyph: '말씀', color: '#b79cff', dark: '#6b4fd6' },
-    { id: 'brain', name: '두뇌 게임', glyph: '게임', color: '#6fd6a3', dark: '#1f9a66' }
+    { id: 'math', name: '수학', fun: '숫자 탐험대', glyph: '수', color: '#ff8fa3', dark: '#d9486a' },
+    { id: 'eng', name: '영어', fun: '영어 모험', glyph: 'A', color: '#7cc4ff', dark: '#2e83cc' },
+    { id: 'kor', name: '국어', fun: '말글 놀이터', glyph: '가', color: '#ffc95e', dark: '#c98a00' },
+    { id: 'bible', name: '성경', fun: '말씀 보물찾기', glyph: '말씀', color: '#b79cff', dark: '#6b4fd6' },
+    { id: 'brain', name: '두뇌 게임', fun: '반짝 두뇌 게임', glyph: '게임', color: '#6fd6a3', dark: '#1f9a66' }
   ];
+  /* 공부 과목이 아닌 놀이 활동 (단계·사다리 없음) */
+  KN.activities = [
+    { id: 'music', name: '음악 활동', fun: '딩동 음악실', glyph: '♪', color: '#ffb36b', dark: '#c4691a' },
+    { id: 'draw', name: '그림 활동', fun: '알록달록 그림방', glyph: '그림', color: '#ff9ad5', dark: '#c4308f' }
+  ];
+  /* 아이에게 보이는 이름 / 부모에게 보이는 이름("숫자 탐험대(수학)") */
+  KN.funName = function (id) { var a = KN.subjects.concat(KN.activities); for (var i = 0; i < a.length; i++) if (a[i].id === id) return a[i].fun; return id === 'review' ? '다시 보기' : String(id); };
+  KN.parentName = function (id) { var a = KN.subjects.concat(KN.activities); for (var i = 0; i < a.length; i++) if (a[i].id === id) return a[i].fun + '(' + a[i].name + ')'; return id === 'review' ? '다시 보기' : String(id); };
   KN.subject = function (id) { for (var i = 0; i < KN.subjects.length; i++) if (KN.subjects[i].id === id) return KN.subjects[i]; return null; };
 
   /* 수학 단원 → 영역 (2022 개정 수학과의 4개 영역 이름) */

@@ -51,8 +51,22 @@
     'hat-star': '<svg class="hat" viewBox="0 0 100 70"><polygon points="50,4 60,28 86,28 65,44 73,68 50,54 27,68 35,44 14,28 40,28" fill="#ffd25e" stroke="#e09a00" stroke-width="3" stroke-linejoin="round"/></svg>',
     'hat-band': '<svg class="hat" viewBox="0 0 100 50"><path d="M10 44 Q50 -8 90 44" fill="none" stroke="#b79cff" stroke-width="10" stroke-linecap="round"/><circle cx="50" cy="12" r="6" fill="#ff7aa2"/></svg>',
     'hat-cap': '<svg class="hat" viewBox="0 0 110 50"><path d="M16 42 Q16 6 50 6 Q84 6 84 42 Z" fill="#4aa3ff"/><path d="M62 40 Q106 36 106 46 L60 46 Z" fill="#2a78c8"/><circle cx="50" cy="6" r="4" fill="#2a78c8"/></svg>'
+    ,
+    'hat-flower': '<svg class="hat" viewBox="0 0 100 50"><g transform="translate(70 26)"><circle cx="0" cy="-11" r="9" fill="#ff7aa2"/><circle cx="11" cy="-3" r="9" fill="#ff7aa2"/><circle cx="7" cy="10" r="9" fill="#ff7aa2"/><circle cx="-7" cy="10" r="9" fill="#ff7aa2"/><circle cx="-11" cy="-3" r="9" fill="#ff7aa2"/><circle r="7" fill="#ffd93d"/></g></svg>',
+    'hat-chef': '<svg class="hat" viewBox="0 0 100 56"><circle cx="30" cy="22" r="16" fill="#fff" stroke="#d9d0e6" stroke-width="2"/><circle cx="50" cy="14" r="18" fill="#fff" stroke="#d9d0e6" stroke-width="2"/><circle cx="70" cy="22" r="16" fill="#fff" stroke="#d9d0e6" stroke-width="2"/><rect x="26" y="32" width="48" height="18" rx="4" fill="#fff" stroke="#d9d0e6" stroke-width="2"/></svg>',
+    'hat-wizard': '<svg class="hat" viewBox="0 0 100 60"><path d="M50 2 L74 50 L26 50 Z" fill="#5b3fb0"/><ellipse cx="50" cy="50" rx="42" ry="8" fill="#7a5ad8"/><path d="M42 30 L46 38 L54 38 L48 43 L50 50 L42 45 L34 50 L36 43 L30 38 L38 38 Z" fill="#ffd93d" transform="translate(8 -8) scale(.8)"/></svg>',
+    'hat-halo': '<svg class="hat" viewBox="0 0 100 40"><ellipse cx="50" cy="20" rx="34" ry="11" fill="none" stroke="#ffd93d" stroke-width="7"/><ellipse cx="50" cy="20" rx="34" ry="11" fill="none" stroke="#fff3b0" stroke-width="2"/></svg>'
   };
   ui.hatSvg = function (id) { return HATS[id] || ''; };
+
+  /* 펫 친구 (40x40, 코드로 그린 작은 동물) */
+  var PETS = {
+    'pet-puppy': '<svg class="petsvg" viewBox="0 0 40 40"><ellipse cx="7" cy="18" rx="5" ry="10" fill="#a8703a" transform="rotate(12 7 18)"/><ellipse cx="33" cy="18" rx="5" ry="10" fill="#a8703a" transform="rotate(-12 33 18)"/><circle cx="20" cy="22" r="14" fill="#e8c08a"/><circle cx="15" cy="19" r="2" fill="#3a3352"/><circle cx="25" cy="19" r="2" fill="#3a3352"/><ellipse cx="20" cy="26" rx="4.5" ry="3.5" fill="#3a3352"/><path d="M20 29 L20 32 M16 33 Q20 36 24 33" stroke="#3a3352" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>',
+    'pet-kitten': '<svg class="petsvg" viewBox="0 0 40 40"><path d="M7 18 L9 4 L18 11 Z" fill="#ffb35c"/><path d="M33 18 L31 4 L22 11 Z" fill="#ffb35c"/><circle cx="20" cy="23" r="14" fill="#ffb35c"/><circle cx="15" cy="21" r="2" fill="#3a3352"/><circle cx="25" cy="21" r="2" fill="#3a3352"/><path d="M18 26 L22 26 L20 28.5 Z" fill="#e8604c"/><path d="M20 28.5 Q17 32 14 30 M20 28.5 Q23 32 26 30 M3 25 L12 26 M37 25 L28 26" stroke="#3a3352" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg>',
+    'pet-bunny': '<svg class="petsvg" viewBox="0 0 40 40"><ellipse cx="14" cy="10" rx="4" ry="10" fill="#fff" stroke="#d9d0e6" stroke-width="1.5"/><ellipse cx="26" cy="10" rx="4" ry="10" fill="#fff" stroke="#d9d0e6" stroke-width="1.5"/><ellipse cx="14" cy="11" rx="2" ry="6" fill="#ffc2d9"/><ellipse cx="26" cy="11" rx="2" ry="6" fill="#ffc2d9"/><circle cx="20" cy="26" r="12" fill="#fff" stroke="#d9d0e6" stroke-width="1.5"/><circle cx="16" cy="24" r="1.8" fill="#3a3352"/><circle cx="24" cy="24" r="1.8" fill="#3a3352"/><circle cx="20" cy="28" r="2" fill="#ff7aa2"/></svg>',
+    'pet-dragon': '<svg class="petsvg" viewBox="0 0 40 40"><path d="M6 20 Q-2 8 10 12 Q10 18 12 22 Z" fill="#7a5ad8"/><path d="M34 20 Q42 8 30 12 Q30 18 28 22 Z" fill="#7a5ad8"/><path d="M13 12 L15 4 L19 10 Z M27 12 L25 4 L21 10 Z" fill="#ffd93d"/><circle cx="20" cy="23" r="13" fill="#58c27a"/><ellipse cx="20" cy="29" rx="7" ry="5" fill="#c9f2d4"/><circle cx="15" cy="20" r="2" fill="#3a3352"/><circle cx="25" cy="20" r="2" fill="#3a3352"/><circle cx="18" cy="26" r="1" fill="#3a3352"/><circle cx="22" cy="26" r="1" fill="#3a3352"/></svg>'
+  };
+  ui.petSvg = function (id) { return PETS[id] || ''; };
 
   /* o: 프로필 또는 {char, deco}.  cls: 'sm' | 'lg' */
   ui.avatar = function (o, cls) {
@@ -61,7 +75,7 @@
     var css = bg && bg.css ? bg.css : c.color;
     return '<div class="avatar ' + (cls || '') + '"><div class="disc" style="background:' + css + '">' +
       '<img src="assets/chars/' + c.id + '.png" alt="' + KN.esc(c.name) + '" data-char="' + c.id + '" onerror="KN.ui.imgFail(this)">' +
-      '</div>' + (deco.hat ? HATS[deco.hat] || '' : '') + '</div>';
+      '</div>' + (deco.hat ? HATS[deco.hat] || '' : '') + (deco.pet && PETS[deco.pet] ? '<span class="pet">' + PETS[deco.pet] + '</span>' : '') + '</div>';
   };
   ui.imgFail = function (img) {
     var c = KN.charOf(img.getAttribute('data-char'));

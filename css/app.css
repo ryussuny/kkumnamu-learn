@@ -317,3 +317,55 @@ table.rec tr.dim td { color: #a9a0b8; }
 .sw { aspect-ratio: 1 / 1; min-height: 44px; border-radius: 50%; border: 3px solid rgba(0,0,0,.15); }
 .sw.wh { border-color: #c9c0d6; }
 .sw.on { outline: 4px solid #3a3352; outline-offset: 2px; }
+
+/* 축하 연출: 색종이 폭죽 */
+.confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 70; }
+.confetti i { position: absolute; top: -16px; width: 10px; height: 16px; border-radius: 2px; opacity: 0; animation: fall 1.6s ease-in forwards; }
+@keyframes fall { 0% { transform: translate(0, 0) rotate(0); opacity: 1; } 100% { transform: translate(var(--dx, 0), 105vh) rotate(var(--rot, 360deg)); opacity: .9; } }
+.celeb { background: linear-gradient(135deg, #fff3b0, #ffd0e6); border-radius: 22px; padding: 14px; text-align: center; font-weight: 800; color: #7a2a52; margin-top: 12px; animation: pop .5s ease-out; }
+@keyframes pop { 0% { transform: scale(.85); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+/* 새 스티커 카드 · 스티커 책 */
+.newstk { display: flex; align-items: center; gap: 14px; background: #fff; border: 3px solid #ffd23f; border-radius: 22px; padding: 12px 14px; margin-top: 12px; animation: pop .5s ease-out; }
+.newstk .stk { flex: none; filter: drop-shadow(0 3px 4px rgba(0,0,0,.18)); }
+.stkgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.stkcell { background: #fff; border-radius: 16px; padding: 8px 2px 6px; text-align: center; font-size: 12px; font-weight: 700; display: flex; flex-direction: column; align-items: center; gap: 2px; box-shadow: var(--shadow); }
+.stkcell.off .stk { filter: brightness(0) opacity(.12); }
+.stkcell.off span { color: #b8b0c6; }
+.stkcell.sp { border: 2px solid #ffd23f; }
+.stkcell .stk { width: 52px; height: 52px; }
+.stkbig { display: block; margin: 8px auto; }
+
+/* 도장 점 · 선물 상자 */
+.sdots { display: flex; gap: 5px; margin: 8px 0 4px; }
+.sdots i { flex: 1; height: 12px; border-radius: 6px; background: #eadfcf; }
+.sdots i.on { background: #d9486a; }
+.giftbox { position: relative; width: 150px; height: 150px; margin: 18px auto; }
+.giftbox .lid { position: absolute; left: 0; right: 0; top: 14px; height: 40px; background: #ff7aa2; border-radius: 10px; box-shadow: 0 4px 0 #d9486a; transform-origin: 8% 100%; transition: transform .5s ease-out; z-index: 2; }
+.giftbox .body { position: absolute; left: 10px; right: 10px; top: 52px; bottom: 0; background: #ffa6c4; border-radius: 0 0 14px 14px; box-shadow: 0 4px 0 #d9486a; }
+.giftbox .rib { position: absolute; left: 50%; width: 22px; margin-left: -11px; top: 14px; bottom: 0; background: #ffd23f; z-index: 3; }
+.giftbox.open .lid { transform: translate(-30px, -34px) rotate(-38deg); }
+.giftbox.shake { animation: wiggle .5s ease-in-out 2; }
+@keyframes wiggle { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-9deg); } 75% { transform: rotate(9deg); } }
+.prize { text-align: center; background: #fff; border: 3px solid #ffd23f; border-radius: 24px; padding: 18px; animation: pop .5s ease-out; }
+.prize .pv { min-height: 90px; display: flex; align-items: center; justify-content: center; }
+.prize .pv .petsvg { width: 90px; height: 90px; }
+.prize .pv .hat { position: static; transform: none; width: 110px; }
+.prize .pv .swb { width: 80px; height: 80px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 3px 8px rgba(0,0,0,.2); }
+
+/* 약속 카드(홈) · 관리 */
+.pcard { background: #fff; border-radius: 22px; padding: 14px; box-shadow: var(--shadow); border: 3px solid #cfe9ff; margin-top: 12px; }
+.pcard.reached { border-color: #ffd23f; background: #fffbe8; }
+.pcard .gbar { margin: 8px 0 4px; }
+.pform label.f { display: block; margin-top: 12px; font-weight: 800; }
+.prow { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.prow:last-child { border-bottom: 0; }
+
+/* 펫 친구 */
+.avatar .pet { position: absolute; right: -14%; bottom: -8%; width: 40%; height: 40%; pointer-events: none; filter: drop-shadow(0 2px 2px rgba(0,0,0,.2)); }
+.avatar .pet svg { width: 100%; height: 100%; display: block; }
+.item .ps { width: 40px; height: 40px; }
+.item .ps svg { width: 40px; height: 40px; }
+.item .gt { font-size: 11px; color: #a86a00; }
+.prow { flex-wrap: wrap; }
+.prow .grow { flex: 1 1 100%; }

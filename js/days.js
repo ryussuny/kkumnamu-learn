@@ -6,7 +6,7 @@
   var DEFAULT_GOAL = { plays: 3, min: 0 };     /* min 0 = 하루 권장 시간을 채우면 */
 
   function num(v, max) { v = Number(v); return isFinite(v) && v > 0 ? Math.min(max || 1e7, Math.round(v * 100) / 100) : 0; }
-  function blankDay() { return { sec: 0, plays: 0, subj: {}, acc: {}, ok: 0, n: 0, music: 0, draw: 0, nb: [], goal: false }; }
+  function blankDay() { return { sec: 0, plays: 0, subj: {}, acc: {}, ok: 0, n: 0, music: 0, draw: 0, nb: [], goal: false, star: 0, ss: {}, stk: 0, gift: 0 }; }
 
   var D = KN.days = {
     KEEP: KEEP, DEFAULT_GOAL: DEFAULT_GOAL,
@@ -32,6 +32,7 @@
       var a = r.acc[rec.subj] || (r.acc[rec.subj] = [0, 0]), ok = Math.round(rec.rate * rec.n * 100) / 100;
       a[0] = Math.round((a[0] + ok) * 100) / 100; a[1] += rec.n;
       r.ok = Math.round((r.ok + ok) * 100) / 100; r.n += rec.n;
+      if (rec.st > 0) { r.star += rec.st; r.ss[rec.subj] = (r.ss[rec.subj] || 0) + rec.st; }   /* 이날 받은 별(약속 보상 계산용) */
       (rec.nb || []).forEach(function (id) { if (r.nb.indexOf(id) < 0) r.nb.push(id); });
       return r;
     },
@@ -52,7 +53,7 @@
       return { plays: r.plays, goalPlays: p.goal.plays, min: r.sec > 0 && r.sec < 60 ? 1 : Math.floor(r.sec / 60), goalMin: D.goalMin(p), done: !!r.goal || D.reached(p, r) };
     },
     /* 공부한 날로 칠 만한 기록인지(판·1분 이상·음악·그림 중 하나) */
-    active: function (r) { return !!r && (r.plays > 0 || r.sec >= 60 || r.music > 0 || r.draw > 0); },
+    active: function (r) { return !!r && (r.plays > 0 || r.sec >= 60 || r.music > 0 || r.draw > 0 || r.stk > 0); },
     minutes: function (r) { return !r ? 0 : (r.sec > 0 && r.sec < 60 ? 1 : Math.floor(r.sec / 60)); },
     pct: function (a) { return a && a[1] ? Math.round(100 * a[0] / a[1]) : 0; },
 
@@ -78,7 +79,8 @@
       if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out;
       Object.keys(raw).filter(function (k) { return DATE.test(k) && raw[k] && typeof raw[k] === 'object'; }).sort().slice(-KEEP).forEach(function (k) {
         var s = raw[k], r = blankDay();
-        r.sec = num(s.sec, 86400); r.plays = Math.round(num(s.plays, 9999)); r.ok = num(s.ok); r.n = Math.round(num(s.n)); r.music = Math.round(num(s.music, 9999)); r.draw = Math.round(num(s.draw, 9999)); r.goal = s.goal === true;
+        r.sec = num(s.sec, 86400); r.plays = Math.round(num(s.plays, 9999)); r.ok = num(s.ok); r.n = Math.round(num(s.n)); r.music = Math.round(num(s.music, 9999)); r.draw = Math.round(num(s.draw, 9999)); r.goal = s.goal === true; r.star = Math.round(num(s.star, 99999)); r.stk = Math.round(num(s.stk, 99)); r.gift = Math.round(num(s.gift, 99));
+        if (s.ss && typeof s.ss === 'object') Object.keys(s.ss).forEach(function (id) { var v = Math.round(num(s.ss[id], 99999)); if (v && /^[a-z]{2,8}$/.test(id)) r.ss[id] = v; });
         if (s.subj && typeof s.subj === 'object') Object.keys(s.subj).forEach(function (id) { var v = Math.round(num(s.subj[id], 9999)); if (v && /^[a-z]{2,8}$/.test(id)) r.subj[id] = v; });
         if (s.acc && typeof s.acc === 'object') Object.keys(s.acc).forEach(function (id) { var a = s.acc[id]; if (/^[a-z]{2,8}$/.test(id) && Array.isArray(a) && a.length === 2) r.acc[id] = [num(a[0]), Math.round(num(a[1]))]; });
         if (Array.isArray(s.nb)) s.nb.forEach(function (id) { if (typeof id === 'string' && /^[a-z0-9]{2,12}$/.test(id) && r.nb.indexOf(id) < 0 && r.nb.length < 40) r.nb.push(id); });

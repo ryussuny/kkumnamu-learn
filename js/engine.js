@@ -124,7 +124,7 @@
       var stk = p.streak || (p.streak = { last: null, n: 0 });
       if (stk.last !== today) { stk.n = (stk.last && KN.dayDiff(stk.last, today) === 1) ? stk.n + 1 : 1; stk.last = today; }
 
-      var rec = { t: Date.now(), d: today, subj: node.subj, unit: node.unit, tier: node.tier, rate: Math.round(rate * 100) / 100, n: total };
+      var rec = { t: Date.now(), d: today, subj: node.subj, unit: node.unit, tier: node.tier, rate: Math.round(rate * 100) / 100, n: total, st: stars };
       p.rounds.push(rec);
       if (p.rounds.length > 300) p.rounds = p.rounds.slice(-300);
 
@@ -134,7 +134,8 @@
       var lvAfter = KN.rewards.level(p.xp);
       KN.days.addRound(p, rec);                      /* 날짜별 기록(1일 학습량) */
       var stamp = KN.days.check(p, rec.d);           /* 오늘 목표를 이번 판으로 채웠으면 도장 */
-      return { stamp: stamp, rate: rate, score: score, total: total, stars: stars, coins: coins, xp: xpGain, moved: moved, newPos: newPos, newBadges: newBadges, levelUp: lvAfter > lvBefore ? lvAfter : 0, graduated: graduatedNow, streak: stk.n };
+      var pz = KN.prizes.afterRound(p, { stars: stars, stamp: stamp });   /* 스티커·선물 상자·약속 보상 */
+      return { stickers: pz.stickers, giftReady: pz.giftReady, promises: pz.reached, stamp: stamp, rate: rate, score: score, total: total, stars: stars, coins: coins, xp: xpGain, moved: moved, newPos: newPos, newBadges: newBadges, levelUp: lvAfter > lvBefore ? lvAfter : 0, graduated: graduatedNow, streak: stk.n };
     },
 
     /* 공부 시간(초) 누적 */

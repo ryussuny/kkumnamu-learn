@@ -30,7 +30,11 @@
       { id: 'bg-lilac', name: '라일락', lv: 3, price: 20, css: 'linear-gradient(160deg,#ece3ff,#c9b3ff)' },
       { id: 'bg-peach', name: '복숭아', lv: 3, price: 20, css: 'linear-gradient(160deg,#ffe5d0,#ffbb8f)' },
       { id: 'bg-night', name: '밤하늘', lv: 5, price: 40, css: 'radial-gradient(circle at 30% 25%,#5b6bd6 0,#2c3a8c 45%,#161f55 100%)' },
-      { id: 'bg-rainbow', name: '무지개', lv: 7, price: 80, css: 'linear-gradient(160deg,#ffb3c6,#ffe27a,#9ae6c0,#9fd3ff,#c9b3ff)' }
+      { id: 'bg-rainbow', name: '무지개', lv: 7, price: 80, css: 'linear-gradient(160deg,#ffb3c6,#ffe27a,#9ae6c0,#9fd3ff,#c9b3ff)' },
+      { id: 'bg-sunset', name: '노을', lv: 4, price: 30, css: 'linear-gradient(160deg,#ffd29e,#ff8fa3 60%,#b58cf0)' },
+      { id: 'bg-forest', name: '숲속', lv: 5, price: 40, css: 'linear-gradient(160deg,#d6f5c4,#6fcf8f 60%,#2f9a63)' },
+      { id: 'bg-ocean', name: '바닷속', gift: true, css: 'linear-gradient(170deg,#bfefff,#4ab8ff 55%,#2457b8)' },
+      { id: 'bg-galaxy', name: '은하수', gift: true, css: 'radial-gradient(circle at 70% 30%,#c58bff 0,#5b3fb0 35%,#1b1448 80%)' }
     ],
     hat: [
       { id: 'hat-ribbon', name: '리본', lv: 2, price: 30 },
@@ -38,11 +42,22 @@
       { id: 'hat-crown', name: '왕관', lv: 4, price: 60 },
       { id: 'hat-star', name: '별 핀', lv: 5, price: 50 },
       { id: 'hat-band', name: '머리띠', lv: 6, price: 40 },
-      { id: 'hat-cap', name: '야구 모자', lv: 7, price: 60 }
+      { id: 'hat-cap', name: '야구 모자', lv: 7, price: 60 },
+      { id: 'hat-flower', name: '꽃 핀', lv: 2, price: 30 },
+      { id: 'hat-chef', name: '요리사 모자', lv: 4, price: 50 },
+      { id: 'hat-wizard', name: '마법사 모자', gift: true },
+      { id: 'hat-halo', name: '반짝 고리', gift: true }
+    ],
+    /* 펫 친구: 캐릭터 옆에 따라다니는 작은 동물 */
+    pet: [
+      { id: 'pet-puppy', name: '강아지', lv: 2, price: 50 },
+      { id: 'pet-kitten', name: '아기 고양이', lv: 3, price: 50 },
+      { id: 'pet-bunny', name: '토끼', gift: true },
+      { id: 'pet-dragon', name: '아기 용', gift: true }
     ]
   };
   R.findDecor = function (id) {
-    var all = R.decor.bg.concat(R.decor.hat);
+    var all = R.decor.bg.concat(R.decor.hat, R.decor.pet);
     for (var i = 0; i < all.length; i++) if (all[i].id === id) return all[i];
     return null;
   };
@@ -50,6 +65,7 @@
     var d = R.findDecor(id);
     if (!d) return '없는 꾸미기예요.';
     if (p.owned.indexOf(id) >= 0) return '이미 가지고 있어요.';
+    if (d.gift) return '선물 상자에서만 얻을 수 있어요. 도장을 모아 보세요.';
     if (R.level(p.xp) < d.lv) return '레벨 ' + d.lv + ' 이 되면 살 수 있어요.';
     if (p.coins < d.price) return '코인이 ' + (d.price - p.coins) + '개 더 필요해요.';
     return '';

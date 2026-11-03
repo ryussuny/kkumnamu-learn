@@ -13,7 +13,8 @@
       streak: { last: null, n: 0 }, badges: [], owned: ['bg-pink'], deco: { bg: 'bg-pink', hat: null },
       pos: {}, nodes: {}, rounds: [], wrong: [], graduated: 0,
       today: { d: KN.today(), sec: 0 }, limitMin: KN.defaultLimit(grade), voice: grade <= 3,
-      days: {}, goal: { plays: 3, min: 0 }, songs: []
+      days: {}, goal: { plays: 3, min: 0 }, songs: [],
+      stickers: [], gifts: [], promises: [], rw: { stamps: 0, gifts: 0, grad: 0 }
     };
   };
   /* 연구 권고(초1-2 20분 / 초3-4 30분 / 초5-6 40분 / 중 50분) */
@@ -22,6 +23,7 @@
   /* 불러온 프로필이 일부 빠져 있거나 이상한 값이어도 앱이 멈추지 않게 기본값으로 채운다 */
   KN.fixProfile = function (p) {
     var g = Math.max(1, Math.min(9, Math.round(Number(p.grade) || 1)));
+    var hadRw = !!p.rw && typeof p.rw === 'object' && !Array.isArray(p.rw);
     var hadDays = !!p.days && typeof p.days === 'object' && !Array.isArray(p.days);   /* 옛 기록에는 days 가 없다 */
     var base = KN.newProfile(String(p.name || '친구').slice(0, 8), g, KN.charOf ? KN.charOf(p.char).id : (p.char || 'princess'));
     Object.keys(base).forEach(function (k) {
@@ -36,6 +38,8 @@
     p.goal.min = Math.max(0, Math.min(120, Math.round(Number(p.goal.min)) || 0));
     p.songs = KN.works ? KN.works.cleanSongs(p.songs) : [];
     if (KN.days) p.days = hadDays ? KN.days.clean(p.days) : KN.days.migrate(p);   /* 없으면 rounds·today 로 채운다 */
+    if (KN.prizes) KN.prizes.clean(p, hadRw);            /* 스티커·선물·약속·도장 수 */
+    if (p.deco.pet && p.owned.indexOf(p.deco.pet) < 0) p.deco.pet = null;
     return p;
   };
 

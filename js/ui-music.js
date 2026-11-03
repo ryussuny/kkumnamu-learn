@@ -11,12 +11,37 @@
     try { ac = new C(); } catch (e) { ac = null; }
     return ac;
   }
+  /* 폰에서는 손가락 pointerdown 이 '사용자 동작'으로 인정되지 않아 소리가 잠긴 채 남는다.
+     손을 뗄 때(pointerup·touchend)·click·keydown 마다 소리를 깨우고, 아이폰은 빈 소리를 한 번 틀어 잠금을 푼다. */
+  function unlock() {
+    var c = ctx(); if (!c) return;
+    if (c.state !== 'running' && c.resume) c.resume();
+    try { var s = c.createBufferSource(); s.buffer = c.createBuffer(1, 1, 22050); s.connect(c.destination); s.start(0); } catch (e) { }
+  }
+  if (g.document) {
+    /* 아이폰 무음 스위치가 켜져 있어도 소리가 나게(사파리 16.4+) */
+    try { if (g.navigator && g.navigator.audioSession) g.navigator.audioSession.type = 'playback'; } catch (e) { }
+    ['pointerup', 'touchend', 'click', 'keydown'].forEach(function (ev) { g.document.addEventListener(ev, unlock, { capture: true, passive: true }); });
+  }
   /* 악기: [배음 배수, 파형, 크기] 와 사라지는 시간(초) */
   var VOICE = {
     piano: { parts: [[1, 'triangle', 1], [2, 'sine', 0.25], [3, 'sine', 0.08]], dec: 1.3, att: 0.006 },
     xylo: { parts: [[1, 'sine', 1], [4, 'sine', 0.18]], dec: 0.38, att: 0.002 },
     bell: { parts: [[1, 'sine', 1], [2.76, 'sine', 0.35], [5.4, 'sine', 0.12]], dec: 2.0, att: 0.002 }
   };
+  function play(c, note, ins) {
+    try {
+      var v = VOICE[ins] || VOICE.piano, t0 = c.currentTime, out = c.createGain();
+      out.gain.value = 0.22; out.connect(c.destination);
+      v.parts.forEach(function (p) {
+        var o = c.createOscillator(), gn = c.createGain();
+        o.type = p[1]; o.frequency.value = note.f * p[0];
+        gn.gain.setValueAtTime(0.0001, t0); gn.gain.exponentialRampToValueAtTime(p[2], t0 + v.att); gn.gain.exponentialRampToValueAtTime(0.0001, t0 + v.dec);
+        o.connect(gn); gn.connect(out); o.start(t0); o.stop(t0 + v.dec + 0.05);
+      });
+      return true;
+    } catch (e) { return false; }
+  }
 
   var A = KN.audio = {
     count: 0, last: null,      /* 소리 함수를 부른 횟수와 마지막 음 (검사용) */
@@ -25,17 +50,12 @@
       A.count++; A.last = { n: i, ins: ins };
       var note = KN.music.NOTES[i]; if (!note) return false;
       var c = ctx(); if (!c) return false;
-      try {
-        var v = VOICE[ins] || VOICE.piano, t0 = c.currentTime, out = c.createGain();
-        out.gain.value = 0.22; out.connect(c.destination);
-        v.parts.forEach(function (p) {
-          var o = c.createOscillator(), gn = c.createGain();
-          o.type = p[1]; o.frequency.value = note.f * p[0];
-          gn.gain.setValueAtTime(0.0001, t0); gn.gain.exponentialRampToValueAtTime(p[2], t0 + v.att); gn.gain.exponentialRampToValueAtTime(0.0001, t0 + v.dec);
-          o.connect(gn); gn.connect(out); o.start(t0); o.stop(t0 + v.dec + 0.05);
-        });
-        return true;
-      } catch (e) { return false; }
+      /* 아직 잠겨 있으면 깨어난 뒤에 친다(첫 터치는 손을 뗄 때 소리가 남) */
+      if (c.state !== 'running' && c.resume) {
+        var pr = null; try { pr = c.resume(); } catch (e) { }
+        if (pr && pr.then) { pr.then(function () { play(c, note, ins); }, function () { }); return true; }
+      }
+      return play(c, note, ins);
     },
     /* seq = [[음, 앞 음과의 간격 ms]] 를 차례로 들려 준다. 돌려주는 stop() 으로 멈춘다 */
     playSeq: function (seq, ins, onStep, onEnd) {

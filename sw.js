@@ -1,6 +1,6 @@
 /* 꿈나무 배움터 서비스 워커 — 모든 파일을 한 번 받아 두고 인터넷 없이 쓴다.
    (scripts/build-sw.js 가 이 파일을 sw.js 로 만든다. 직접 고치지 말고 template 을 고칠 것) */
-var VERSION = 'kn-8c39946d2f';
+var VERSION = 'kn-2cfe812116';
 var ASSETS = [
  "./",
  "assets/chars/astronaut.png",
